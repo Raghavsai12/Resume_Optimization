@@ -1,0 +1,22 @@
+# Environments
+.env
+venv/
+env/
+ENV/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Databases
+chroma_db/
+*.sqlite3
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# User Uploads
+*.pdf

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Resume Optimizer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; }
+.glass-panel {
+background: rgba(255, 255, 255, 0.9);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.file-drop-active { border-color: #3b82f6; background-color: #eff6ff; }
+
+/* Circular Progress CSS */
+.circular-chart { display: block; margin: 0 auto; max-width: 80%; max-height: 250px; }
+.circle-bg { fill: none; stroke: #e6e6e6; stroke-width: 3.8; }
+.circle { fill: none; stroke-width: 2.8; stroke-linecap: round; transition: stroke-dasharray 1s ease-out; }
+.percentage { fill: #1e293b; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.5em; text-anchor: middle; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 selection:bg-blue-200">
+
+<!-- Navbar -->
+<nav class="bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-50">
+<div class="max-w-7xl mx-auto flex items-center gap-3">
+<svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+<h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Resume Optimizer Pro</h1>
+</div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+
+<!-- LEFT PANEL: INPUT FORM -->
+<div class="lg:col-span-5 space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-slate-900">Target Your Role</h2>
+<p class="text-slate-500 text-sm mt-1">Upload your resume and the job description to get AI-driven improvements.</p>
+</div>
+
+<form id="optimizeForm" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+<div>
+<label class="block text-sm font-medium text-slate-700 mb-1">Job Title</label>
+<input type="text" name="target_job_title" required class="w-full rounded-xl border-slate-200 shadow-sm px-4 py-3 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" placeholder="e.g. Senior Backend Engineer">
+</div>
+
+<div>
+<label class="block text-sm font-medium text-slate-700 mb-1">Job Description</label>
+<textarea name="job_description" required rows="5" class="w-full rounded-xl border-slate-200 shadow-sm px-4 py-3 border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm resize-none" placeholder="Paste the full job description here..."></textarea>
+</div>
+
+<!-- Custom Drag & Drop Zone -->
+<div>
+<label class="block text-sm font-medium text-slate-700 mb-1">Resume (PDF only)</label>
+<div id="dropZone" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-blue-500 hover:bg-slate-50 transition-all cursor-pointer relative">
+<div class="space-y-1 text-center">
+<svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+<path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+<div class="flex text-sm text-slate-600 justify-center">
+<label for="fileInput" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+<span>Upload a file</span>
+<input id="fileInput" name="file" type="file" accept=".pdf" class="sr-only" required>
+</label>
+<p class="pl-1">or drag and drop</p>
+</div>
+<p class="text-xs text-slate-500" id="fileNameDisplay">PDF up to 10MB</p>
+</div>
+</div>
+</div>
+
+<button type="submit" id="submitBtn" class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+Run AI Analysis
+</button>
+</form>
+</div>
+
+<!-- RIGHT PANEL: DASHBOARD & RESULTS -->
+<div class="lg:col-span-7">
+
+<!-- Empty State -->
+<div id="emptyState" class="h-full flex flex-col items-center justify-center text-slate-400 bg-slate-100 rounded-2xl border border-slate-200 border-dashed p-10 min-h-[500px]">
+<svg class="w-16 h-16 mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
+<p class="text-lg font-medium">Ready for Analysis</p>
+<p class="text-sm mt-1">Upload your documents to see the magic.</p>
+</div>
+
+<!-- Loading State -->
+<div id="loading" class="hidden h-full flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200 p-10 min-h-[500px] shadow-sm">
+<div class="relative w-20 h-20">
+<div class="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+<div class="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+</div>
+<h3 class="mt-6 text-lg font-semibold text-slate-800">Llama-3 is reading...</h3>
+<p class="text-slate-500 text-sm mt-2">Extracting context and matching against JD parameters.</p>
+</div>
+
+<!-- Results Dashboard -->
+<div id="results" class="hidden space-y-6">
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<!-- Score Card -->
+<div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-center">
+<h2 class="text-sm font-bold tracking-widest text-slate-400 uppercase mb-4">ATS Match Score</h2>
+
+<!-- Circular SVG -->
+<svg viewBox="0 0 36 36" class="circular-chart text-blue-600 w-32 h-32">
+<path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+<path id="scoreCircle" class="circle" stroke="currentColor" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+<text id="atsScoreText" x="18" y="20.35" class="percentage">0</text>
+</svg>
+</div>
+
+<!-- Keywords Card -->
+<div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col">
+<h2 class="text-sm font-bold tracking-widest text-slate-400 uppercase mb-4">Missing Keywords</h2>
+<div id="keywordsList" class="flex flex-wrap gap-2"></div>
+</div>
+</div>
+
+<!-- Bullets Card -->
+<div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+<h2 class="text-sm font-bold tracking-widest text-slate-400 uppercase mb-4">AI Bullet Re-writes</h2>
+<div id="bulletsList" class="space-y-4"></div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// File UI Logic
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+// Handle Drag & Drop styles
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+dropZone.addEventListener(eventName, preventDefaults, false);
+});
+function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+['dragenter', 'dragover'].forEach(eventName => dropZone.classList.add('file-drop-active'));
+['dragleave', 'drop'].forEach(eventName => dropZone.classList.remove('file-drop-active'));
+
+dropZone.addEventListener('drop', (e) => {
+const files = e.dataTransfer.files;
+if (files.length) { fileInput.files = files; updateFileName(); }
+});
+fileInput.addEventListener('change', updateFileName);
+
+function updateFileName() {
+if (fileInput.files.length > 0) {
+fileNameDisplay.textContent = fileInput.files[0].name;
+fileNameDisplay.classList.add('text-blue-600', 'font-medium');
+}
+}
+
+// Form Submission Logic
+document.getElementById('optimizeForm').addEventListener('submit', async (e) => {
+e.preventDefault();
+
+const form = e.target;
+const submitBtn = document.getElementById('submitBtn');
+const emptyState = document.getElementById('emptyState');
+const loading = document.getElementById('loading');
+const results = document.getElementById('results');
+
+// Start Loading
+submitBtn.disabled = true;
+submitBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
+
+emptyState.classList.add('hidden');
+results.classList.add('hidden');
+loading.classList.remove('hidden');
+
+try {
+const response = await fetch('/api/v1/optimize', {
+method: 'POST',
+body: new FormData(form)
+});
+
+if (!response.ok) throw new Error('API Error');
+const data = await response.json();
+
+// Animate Score Ring
+const score = data.ats_score;
+document.getElementById('atsScoreText').textContent = score;
+// Add color based on score
+const ringColor = score >= 80 ? '#10b981' : (score >= 60 ? '#f59e0b' : '#ef4444');
+document.getElementById('scoreCircle').style.stroke = ringColor;
+document.getElementById('atsScoreText').style.fill = ringColor;
+
+// SVG animation trigger
+setTimeout(() => {
+document.getElementById('scoreCircle').style.strokeDasharray = `${score}, 100`;
+}, 100);
+
+// Render Keywords
+document.getElementById('keywordsList').innerHTML = data.missing_keywords
+.map(kw => `<span class="px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg text-sm font-medium shadow-sm">${kw}</span>`)
+.join('');
+
+// Render Bullets
+document.getElementById('bulletsList').innerHTML = data.bullet_improvements
+.map(b => `
+<div class="p-4 rounded-xl bg-slate-50 border border-slate-100 relative overflow-hidden group hover:border-blue-200 transition-colors">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+<div class="space-y-3 pl-2">
+<div>
+<span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Original</span>
+<p class="text-slate-500 text-sm line-through decoration-slate-300">${b.original_bullet}</p>
+</div>
+<div>
+<span class="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1 block">AI Optimized</span>
+<p class="text-slate-800 font-medium text-sm">${b.improved_bullet}</p>
+</div>
+<div class="pt-2 border-t border-slate-200 flex items-start gap-2">
+<svg class="w-4 h-4 text-amber-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+<p class="text-slate-600 text-xs italic leading-relaxed">${b.reasoning}</p>
+</div>
+</div>
+</div>
+`).join('');
+
+loading.classList.add('hidden');
+results.classList.remove('hidden');
+
+} catch (error) {
+alert('Analysis failed. Please check if your backend is running properly.');
+emptyState.classList.remove('hidden');
+loading.classList.add('hidden');
+} finally {
+submitBtn.disabled = false;
+submitBtn.innerHTML = 'Run AI Analysis';
+}
+});
+</script>
+</body>
+</html>
